@@ -2,7 +2,7 @@
 
 int main() {
 	struct BlockData b;	//블럭 정보 구조체
-	b.blockForm = randomCreateBlock();	//블록 정하기
+	b.blockForm = b.blockArray[b.arrayIndex]; 
 
 	struct CTime ctime;	//시간 정보 구조체
 	ctime.startDropTime = clock();

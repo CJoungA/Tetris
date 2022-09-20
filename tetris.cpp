@@ -251,18 +251,36 @@ void gotoxy(int x, int y) {
 	SetConsoleCursorPosition(consoleHandle, pos);
 }
 
-int randomCreateBlock() {	//랜덤 함수 출력 균등하게 분포?
-	std::random_device rd;
-	std::mt19937 gen(rd());
-	std::uniform_int_distribution<int> r(0, 6);
-	return r(gen);
+void shuffle(int* arr) {	//배열섞기
+	srand(time(NULL));
+	int temp;
+	int rn;
+	for (int i = 0; i < 6; i++)
+	{
+		rn = rand() % (7 - i) + i;    // 0~6까지 임의의 정수 생성
+		temp = arr[i];
+		arr[i] = arr[rn];
+		arr[rn] = temp;
+	}
+}
+
+void blockSet(struct BlockData& b) {
+	b.x = 4;	//블록 생성위치로 초기화
+	b.y = 0;
+	b.blockRotation = 0;
+	b.arrayIndex++;	//블록 랜덤생성
+	if (b.arrayIndex > 6) {
+		b.arrayIndex = 0;
+		shuffle(b.blockArray);
+	}
+	b.blockForm = b.blockArray[b.arrayIndex];
 }
 
 bool checkMoveCrash(int x, int y, int blockForm, int blockRotation) {
 	for (int i = 0; i < 4; i++) {
 		for (int j = 0; j < 4; j++) {
 			if (block[blockForm][blockRotation][i][j] == 1) {
-				if (map[i + y][j + x] == 1 || map[i + y][j + x] == 2) {	//벽이나 블록 이면 트루 반환
+				if (map[i + y][j + x] == 1 || map[i + y][j + x] == 2) {	//벽 또는 고정된 블록일때 트루 반환
 					return true;
 				}
 			}
@@ -295,15 +313,11 @@ void fixBlock(struct BlockData& b, struct CTime& ctime) {
 			for (int i = 0; i < 4; i++) {
 				for (int j = 0; j < 4; j++) {
 					if (block[b.blockForm][b.blockRotation][i][j] == 1) {
-						map[i + b.y][j + b.x] = 2;
+						map[i + b.y][j + b.x] = 2;	//맵에 고정된 블록 저장
 					}
 				}
 			}
-
-			b.x = 4;	//블록 생성위치로 초기화
-			b.y = 0;
-			b.blockForm = randomCreateBlock();	//블록 랜덤생성
-			b.blockRotation = 0;
+			blockSet(b);	//블록 정보 초기화 및 블록 선택
 		}
 	}
 }
