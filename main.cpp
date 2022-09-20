@@ -25,10 +25,10 @@ int main() {
 		fixBlock(b, ctime);
 		removeLine(score);
 
-		drawMap();					//렌더링
+		drawMap();	//렌더링
 		drawBlock(b);
 
-		gameExit();					//루프 종료
+		gameOver();	//게임 종료
 	}
 
 	return 0;

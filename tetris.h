@@ -45,5 +45,5 @@ void drawBlock(struct BlockData b);	//블록그리기
 void deleteBlock(struct BlockData b); //블록지우기
 void drawInformation();	//조작키 정보그리기
 
-void gameExit();
+void gameExit();	//게임 오버
 #endif

@@ -542,7 +542,7 @@ void drawInformation() {
 	cout << "■■■■■■■■■■■■";
 }
 
-void gameExit() {
+void gameOver() {
 	for (int i = 1; i < 11; i++) {
 		if (map[1][i] == 2) {
 			gotoxy(0, 23);
