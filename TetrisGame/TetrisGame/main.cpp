@@ -19,6 +19,6 @@ int main() {
 
 		tetris.gameOver();	//루프종료
 	}
-
+	
 	return 0;
 }
