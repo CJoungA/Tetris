@@ -19,7 +19,6 @@ int main() {
 
 		tetris.gameOver();	//루프종료
 	}
-	// 바보 바보
-	// 바보 바보
+	
 	return 0;
 }
