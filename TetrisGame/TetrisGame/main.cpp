@@ -1,24 +1,57 @@
 ﻿#include "Tetris.h"
 
 int main() {
-	Tetris tetris;
+	// ----- Orange Code -----
+	srand((unsigned)time(nullptr));
 
-	setCursor();	//커서숨기기
+	int input = 1;
+	cout << "[1. Player Play]" << std::endl;
+	cout << "[else. CPU Play]" << std::endl;
+	cout << " >> ";
+	cin >> input;
+	cout << std::endl;
+	// -----------------------
 
-	tetris.getGameSpeed();	//속도 입력 받기
+	if (input == 1)
+	{
+		Tetris tetris;
 
-	tetris.drawInformation();	//조작키 정보그리기
+		setCursor();	//커서숨기기
 
-	while (true) {
+		tetris.getGameSpeed();	//속도 입력 받기
 
-		tetris.keyInputEvent();	//키이벤트
+		tetris.drawInformation();	//조작키 정보그리기
 
-		tetris.update();	//업데이트	
+		while (true) {
 
-		tetris.render();	//렌더링
+			tetris.keyInputEvent();	//키이벤트
 
-		tetris.gameOver();	//루프종료
+			tetris.update();	//업데이트	
+
+			tetris.render();	//렌더링
+
+			tetris.gameOver();	//루프종료
+		}
 	}
-	
+
+	// ----- Orange Code -----
+	else
+	{
+		CPU cpuTetris;
+		
+		setCursor();
+		cpuTetris.getGameSpeed();
+		cpuTetris.drawInformation();
+
+		while (true)
+		{
+			cpuTetris.keyInputEvent();
+			cpuTetris.update();
+			cpuTetris.render();
+			cpuTetris.gameOver();
+		}
+	}
+	// -----------------------
+
 	return 0;
 }
