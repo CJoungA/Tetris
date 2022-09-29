@@ -1518,7 +1518,6 @@ void CPU::SelectMovePos()
 
 void CPU::MoveToSelectPos()
 {
-	/*
 	endTime = clock();
 
 	if ((float)(endTime - startMoveTime) >= 200.0f) 
@@ -1554,25 +1553,5 @@ void CPU::MoveToSelectPos()
 		}
 
 		startMoveTime = clock();
-	}
-	*/
-	if (selectedRotationNum != blockRotation)
-	{
-		moveBlockRotate();
-	}
-
-	if (selectedMovePosX > x)
-	{
-		moveBlockRight();
-	}
-	else if (selectedMovePosX < x)
-	{
-		moveBlockLeft();
-	}
-	// 회전 및 이동 모두 완료시 하드드롭
-	if (selectedMovePosX == x && selectedRotationNum == blockRotation)
-
-	{
-		moveBlockHardDrop();
 	}
 }
