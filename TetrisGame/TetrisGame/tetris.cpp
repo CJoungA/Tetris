@@ -560,29 +560,29 @@ void Tetris::render() {
 
 
 
-// ------------------------- Orange Code -------------------------
+// 생성자 & 소멸자
 CPU::CPU()
 {
 	tetroPos.clear();
-	tetro.clear();
-	spaceState.clear();
-	weightInfo.clear();
-	smallestWeight.clear();
+	tetroContainer.clear();
+	spaceStateContainer.clear();
+	deploymentInfo.clear();
+	smallestBlank.clear();
 
 	tetroRotationNum = 0;
 	tetroCreatePosX = 4;
 	tetroCreatePosY = 0;
-
 	tetroLeftmostPosX = 0;
 	tetroRightmostPosX = 0;
-
-	weight = 0;
-
+	blankCount = 0;
 	selectedRotationNum = 0;
 	selectedMovePosX = 0;
 
-	searchComplete = false;
+	startMoveTime = 0.0f;
+
+	runAlgorithm = true;
 	checkWall = false;
+	turnComplete = false;
 }
 
 CPU::~CPU()
@@ -590,6 +590,9 @@ CPU::~CPU()
 
 }
 
+
+
+// 오버라이딩 & 게임 루프
 void CPU::keyInputEvent() 
 {
 	if (_kbhit()) 
@@ -598,11 +601,11 @@ void CPU::keyInputEvent()
 		switch (key)
 		{
 		case 32:
-			gameExit();
+			gameExit(); // 게임 종료
 			break;
 		case 80:
 		case 112:
-			pauseGame();
+			pauseGame(); // 일시 정지
 			break;
 		}
 	}
@@ -610,35 +613,29 @@ void CPU::keyInputEvent()
 
 void CPU::update()
 {
-	// 시뮬레이션
-	TetrisAIAlgorithm();
+	AIAlgorithm();
 
-	// 선택한 위치로 이동 
 	MoveToSelectPos();
 
-	// 블록 하강
 	dropBlock();
 
-	// 블록 저장
 	fixBlock();
 
-	// 라인 제거
 	removeLine();
-
 }
 
 void CPU::render() 
 {
-	// 맵 그리기
 	drawMap();
 
-	// 블록 그리기
 	drawBlock();
 
-	// 점수
 	showScore();
 }
 
+
+
+// 오버라이딩
 void CPU::drawInformation() 
 {
 	gotoxy(15, 17);
@@ -657,23 +654,28 @@ void CPU::fixBlock()
 	if (checkMoveCrash(x, y + 1, blockForm, blockRotation) == true) 
 	{
 		if ((float)(endTime - startGroundTime) > 500) 
-		{	//0.5초
+		{
 			for (int i = 0; i < 4; i++) 
 			{
 				for (int j = 0; j < 4; j++) 
 				{
 					if (block[blockForm][blockRotation][i][j] == 1) 
 					{
-						map[i + y][j + x] = 2;	//맵에 고정된 블록 저장
+						map[i + y][j + x] = 2;
 					}
 				}
 			}
-			blockSet();	//블록 정보 초기화 및 블록 선택
-			searchComplete = false;
+			blockSet();
+
+			runAlgorithm = true; // AI 알고리즘 다시 작동
+			turnComplete = false; // 테트로미노 회전 완료 상태를 false로 전환
 		}
 	}
 }
 
+
+
+// 게임 종료
 void CPU::gameExit()
 {
 	gotoxy(0, 22);
@@ -685,57 +687,64 @@ void CPU::gameExit()
 
 
 
-// 테트리스 AI 알고리즘
-void CPU::TetrisAIAlgorithm()
+// AI
+void CPU::AIAlgorithm()
 {
-	if (searchComplete != true)
+	// 이동할 좌표를 정했으면 테트로미노가 저장될 때까지 알고리즘 사용중지
+	if (runAlgorithm == true)
 	{
-		for (tetroRotationNum = 0; tetroRotationNum < 4; tetroRotationNum++)
+		// 모든 회전상태 확인
+		for (tetroRotationNum = 0; tetroRotationNum < 4; tetroRotationNum++) 
 		{
-			// 테트로미노의 모든 좌표 확인
 			TetroPosCheck();
 
-			// 공간 상태를 저장하는 벡터 생성
-			CreateSpaceStateVector();
+			CreateTetroContainer();
 
-			// 테트로미노가 움직일 수 있는 가장 왼쪽 X 좌표
 			LeftmostPosXThatTetroCanMove();
 
-			// 테트로미노가 움직일 수 있는 가장 오른쪽 X 좌표
 			RightmostPosXThatTetroCanMove();
 
-			// 움직일 수 있는 모든 X 좌표에서 바닥으로 이동
 			TetroMoveToBottom();
+
+			// O 테트로미노는 회전해도 모양이 모두 똑같음으로 한 번만 확인 후 break
+			if (blockForm == 1)
+			{
+				break;
+			}
+			// I, S, Z 테트로미노는 회전상태를 2번만 확인하면 나머지는 똑같은 모양이 나오기 때문에 tetroRotationNum이 1이 될 때까지만 확인하고 break
+			else if ((blockForm == 0 || blockForm == 3 || blockForm == 4) && tetroRotationNum == 1)
+			{
+				break;
+			}
 		}
 
-		// 가중치가 가장 적은 벡터 찾기
-		SearchSmallestWeight();
+		SearchSmallestBlankNum();
 
-		// 가장 적은 벡터들 중에서 랜덤으로 하나 뽑기
-		SearchMovePos();
+		SelectMovePos();
 
-		searchComplete = true;
+		runAlgorithm = false; // 테트로미노를 이동시킬 위치를 찾았으면 알고리즘 작동정지
 	}
 }
 
-// 테트로미노의 모든 좌표 확인
 void CPU::TetroPosCheck()
 {
+	// I 테트로미노 회전상태가 1, 3일 때 (4, 0)좌표에서 생성되면 천장에 겹치므로 tetroCreatePosY 값을 +1
 	if (blockForm == 0 && (tetroRotationNum == 1 || tetroRotationNum == 3))
 	{
 		tetroCreatePosY++;
 	}
-
+	// J 테트로미노 회전상태가 3일 때 (4, 0)좌표에서 생성되면 천장에 겹치므로 tetroCreatePosY 값을 +1
 	else if (blockForm == 5 && tetroRotationNum == 3)
 	{
 		tetroCreatePosY++;
 	}
-
+	// L 테트로미노 회전상태가 1일 때 (4, 0)좌표에서 생성되면 천장에 겹치므로 tetroCreatePosY 값을 +1
 	else if (blockForm == 6 && tetroRotationNum == 1)
 	{
 		tetroCreatePosY++;
 	}
 
+	// tetroPos벡터에 테트로미노의 모든 칸의 좌표를 저장
 	for (int tetroFrameY = 0; tetroFrameY < 4; tetroFrameY++)
 	{
 		for (int tetroFrameX = 0; tetroFrameX < 4; tetroFrameX++)
@@ -752,15 +761,14 @@ void CPU::TetroPosCheck()
 	}
 }
 
-// 공간 상태를 저장하는 벡터 생성
-void CPU::CreateSpaceStateVector()
+void CPU::CreateTetroContainer()
 {
+	// 테트로미노를 담을 벡터 크기 계산
 	int startPosX = tetroPos[0][0];
 	int endPosX = tetroPos[0][0];
 	int startPosY = tetroPos[0][1];
 	int endPosY = tetroPos[0][1];
 
-	// 공간 상태를 저장하는 벡터의 크기 계산
 	for (int vectorNum = 1; vectorNum < 4; vectorNum++)
 	{
 		if (startPosX > tetroPos[vectorNum][0])
@@ -784,43 +792,45 @@ void CPU::CreateSpaceStateVector()
 		}
 	}
 
-	// 공간 상태를 저장하는 벡터 생성
-	for (int vectorPosY = 0; vectorPosY < (endPosY - startPosY) + 2; vectorPosY++) // 한 칸 밑까지 빈공간을 확인하기 위해서 Y 좌표는 + 1
+	// 테트로미노를 담을 벡터 생성
+	int tetroSize_X = (endPosX - startPosX) + 1;
+	int tetroSize_Y = (endPosY - startPosY) + 1;
+
+	for (int vectorCreatePosY = 0; vectorCreatePosY < tetroSize_Y + 1; vectorCreatePosY++) // 테트로미노의 한 칸 밑까지 빈공간을 확인하기 위해서 Y좌표는 +1
 	{
 		std::vector<int> inputValue;
 
-		for (int vectorPosX = 0; vectorPosX < (endPosX - startPosX) + 1; vectorPosX++)
+		for (int vectorCreatePosX = 0; vectorCreatePosX < tetroSize_X + 2; vectorCreatePosX++) // 테트로미노의 왼쪽, 오른쪽 한 칸씩 빈공간을 더 확인하기 위해서 X좌표에 +2
 		{
 			inputValue.push_back(0);
 		}
-		tetro.push_back(inputValue);
+		tetroContainer.push_back(inputValue);
 	}
 
-	// 공간 상태를 저장하는 벡터 안에 테트로미노 저장
+	// 테트로미노를 담을 벡터 안에 테트로미노 저장
 	for (int vectorNum = 0; vectorNum < tetroPos.size(); vectorNum++)
 	{
-		int tetroPosX = tetroPos[vectorNum][0] - startPosX;
+		int tetroPosX = (tetroPos[vectorNum][0] + 1) - startPosX; // tetroContainer벡터 가운데에 테트로미노를 저장하기 위해 테트로미노 X좌표에 +1
 		int tetroPosY = tetroPos[vectorNum][1] - startPosY;
 
-		tetro[tetroPosY][tetroPosX] = 1;
+		tetroContainer[tetroPosY][tetroPosX] = 1;
 	}
 }
 
-// 테트로미노가 움직일 수 있는 가장 왼쪽 X 좌표
 void CPU::LeftmostPosXThatTetroCanMove()
 {
-	int moveTetroLeft = 0;
+	int moveLeft = 0; // 테트로미노가 왼쪽으로 움직인 횟수
 
 	while (checkWall != true)
 	{
-		// 생성되는 위치에 벽이 있을 때까지 확인
+		// 테트로미노가 생성되는 위치에 벽이 있는지 확인
 		for (int tetroFrameY = 0; tetroFrameY < 4; tetroFrameY++)
 		{
 			for (int tetroFrameX = 0; tetroFrameX < 4; tetroFrameX++)
 			{
 				if (block[blockForm][tetroRotationNum][tetroFrameY][tetroFrameX] == 1)
 				{
-					int mapPosX = (tetroCreatePosX - moveTetroLeft) + tetroFrameX;
+					int mapPosX = (tetroCreatePosX - moveLeft) + tetroFrameX;
 					int mapPosY = tetroCreatePosY + tetroFrameY;
 
 					if (map[mapPosY][mapPosX] == 1)
@@ -831,36 +841,35 @@ void CPU::LeftmostPosXThatTetroCanMove()
 			}
 		}
 
-		// 벽을 확인하지 못했으면 왼쪽으로 한 칸 이동
+		// 테트로미노가 벽에 겹치지 않았을 경우 생성되는 위치를 왼쪽으로 한 칸 이동
 		if (checkWall == false)
 		{
-			moveTetroLeft++;
+			moveLeft++;
 		}
-		// 벽을 확인했으면 오른쪽으로 한 칸 이동 후 좌표 저장
+		// 테트로미노가 벽에 겹쳤을 경우 생성되는 위치를 오른쪽으로 한 칸 이동 후 X좌표를 tetroLeftmostPosX에 저장
 		else
 		{
-			moveTetroLeft--;
-			tetroLeftmostPosX = tetroCreatePosX - moveTetroLeft;
+			moveLeft--;
+			tetroLeftmostPosX = tetroCreatePosX - moveLeft;
 		}
 	}
 	checkWall = false;
 }
 
-// 테트로미노가 움직일 수 있는 가장 오른쪽 X 좌표
 void CPU::RightmostPosXThatTetroCanMove()
 {
-	int moveTetroRight = 0;
+	int moveRight = 0; // 테트로미노가 오른쪽으로 움직인 횟수
 
 	while (checkWall != true)
 	{
-		// 생성되는 위치에 벽이 있을 때까지 확인
+		// 테트로미노가 생성되는 위치에 벽이 있는지 확인
 		for (int tetroFrameY = 0; tetroFrameY < 4; tetroFrameY++)
 		{
 			for (int tetroFrameX = 0; tetroFrameX < 4; tetroFrameX++)
 			{
 				if (block[blockForm][tetroRotationNum][tetroFrameY][tetroFrameX] == 1)
 				{
-					int mapPosX = (tetroCreatePosX + moveTetroRight) + tetroFrameX;
+					int mapPosX = (tetroCreatePosX + moveRight) + tetroFrameX;
 					int mapPosY = tetroCreatePosY + tetroFrameY;
 
 					if (map[mapPosY][mapPosX] == 1)
@@ -871,196 +880,682 @@ void CPU::RightmostPosXThatTetroCanMove()
 			}
 		}
 
-		// 벽을 확인하지 못했으면 오른쪽으로 한 칸 이동
+		// 테트로미노가 벽에 겹치지 않았을 경우 생성되는 위치를 오른쪽으로 한 칸 이동
 		if (checkWall == false)
 		{
-			moveTetroRight++;
+			moveRight++;
 		}
-		// 벽을 확인했으면 왼쪽으로 한 칸 이동 후 좌표 저장
+		// 테트로미노가 벽에 겹쳤을 경우 생성되는 위치를 왼쪽으로 한 칸 이동 후 X좌표를 tetroRightmostPosX에 저장
 		else
 		{
-			moveTetroRight--;
-			tetroRightmostPosX = tetroCreatePosX + moveTetroRight;
+			moveRight--;
+			tetroRightmostPosX = tetroCreatePosX + moveRight;
 		}
 	}
 	checkWall = false;
 }
 
-// 움직일 수 있는 모든 X 좌표에서 바닥으로 이동
 void CPU::TetroMoveToBottom()
 {
-	int tetroPosX = 1;
-	int tetroPosY = 1;
+	int tetroContainerCreatePosX = 0; // map벡터를 기준 tetroContainer벡터가 생성되는 X좌표
+	int tetroContainerCreatePosY = 1; // map벡터를 기준 tetroContainer벡터가 생성되는 Y좌표
 
-	// 움직일 수 있는 모든 X 좌표를 확인할 때까지 반복
+	// 테트로미노가 생성될 수 있는 모든 X 좌표를 확인할 때까지 반복
 	while (tetroLeftmostPosX < tetroRightmostPosX + 1)
 	{
-		// 바닥 확인
-		for (int tetroVectorBlockPosY = 0; tetroVectorBlockPosY < tetro.size(); tetroVectorBlockPosY++)
+		// 테트로미노와 바닥이 겹쳤는지 확인
+		for (int vectorSearchingPosY = 0; vectorSearchingPosY < tetroContainer.size(); vectorSearchingPosY++)
 		{
-			for (int tetroVectorBlockPosX = 0; tetroVectorBlockPosX < tetro[0].size(); tetroVectorBlockPosX++)
+			for (int vectorSearchingPosX = 0; vectorSearchingPosX < tetroContainer[0].size(); vectorSearchingPosX++)
 			{
-				int mapPosX = tetroPosX + tetroVectorBlockPosX;
-				int mapPosY = tetroPosY + tetroVectorBlockPosY;
+				int mapPosX = tetroContainerCreatePosX + vectorSearchingPosX;
+				int mapPosY = tetroContainerCreatePosY + vectorSearchingPosY;
 
-				if (tetro[tetroVectorBlockPosY][tetroVectorBlockPosX] == 1 && (map[mapPosY][mapPosX] == 1 || map[mapPosY][mapPosX] == 2))
+				if (tetroContainer[vectorSearchingPosY][vectorSearchingPosX] == 1 && (map[mapPosY][mapPosX] == 1 || map[mapPosY][mapPosX] == 2))
 				{
 					checkWall = true;
 				}
 			}
 		}
 
-		// 바닥이 확인되지 않았으면 Y축 방향으로 1칸 이동
+		// 테트로미노가 바닥과 겹치치 않았으면 아래로 한 칸 이동
 		if (checkWall == false)
 		{
-			tetroPosY++;
+			tetroContainerCreatePosY++;
 		}
-		// 바닥이 확인되었으면 Y축 방향으로 -1칸 이동 후 가중치 확인
+		// 테트로미노가 바닥과 겹쳤으면 위로 한 칸 이동 후 빈칸 확인
 		else
 		{
-			tetroPosY--;
-			spaceState = tetro;
+			tetroContainerCreatePosY--;
+			
+			CheckBlank(tetroContainerCreatePosX, tetroContainerCreatePosY);
 
-			// 가중치 확인
-			CheckWeightLogic(tetroPosX, tetroPosY);
-
-			// 가중치 정보 저장
-			std::vector<int> inputValue;
-
-			inputValue.push_back(tetroRotationNum);
-			inputValue.push_back(tetroLeftmostPosX);
-			inputValue.push_back(weight);
-			inputValue.push_back(tetroPosY); // <<------------------------------------------ 추가
-
-			weightInfo.push_back(inputValue);
-
-			inputValue.clear();
-
-			// 일부 값 초기화
-			tetroPosX++;
-			tetroPosY = 1;
+			tetroContainerCreatePosX++;
+			tetroContainerCreatePosY = 1;
 			tetroLeftmostPosX++;
 			checkWall = false;
-			spaceState.clear();
-			weight = 0;
 		}
 	}
 
-	// 초기화
 	tetroPos.clear();
-	tetro.clear();
+	tetroContainer.clear();
 	tetroCreatePosY = 0;
 }
 
-// 가중치를 확인하기 위한 로직
-void CPU::CheckWeightLogic(int posX, int posY)
+void CPU::CheckBlank(int posX, int posY)
 {
+	spaceStateContainer = tetroContainer; // spaceStateContainer벡터에 tetroContainer벡터를 삽입
+
 	// 테트로미노 주변에 채워진 공간 확인
-	for (int spaceStatePosY = 0; spaceStatePosY < tetro.size(); spaceStatePosY++)
+	for (int vectorSearchingPosY = 0; vectorSearchingPosY < spaceStateContainer.size(); vectorSearchingPosY++)
 	{
-		for (int spaceStatePosX = 0; spaceStatePosX < tetro[0].size(); spaceStatePosX++)
+		for (int vectorSearchingPosX = 0; vectorSearchingPosX < spaceStateContainer[0].size(); vectorSearchingPosX++)
 		{
-			int mapPosX = posX + spaceStatePosX;
-			int mapPosY = posY + spaceStatePosY;
+			int mapPosX = posX + vectorSearchingPosX;
+			int mapPosY = posY + vectorSearchingPosY;
 
 			if (map[mapPosY][mapPosX] == 1 || map[mapPosY][mapPosX] == 2)
 			{
-				spaceState[spaceStatePosY][spaceStatePosX] = 1;
+				spaceStateContainer[vectorSearchingPosY][vectorSearchingPosX] = 1;
 			}
 		}
 	}
 
-	// 테트로미노 주변에 빈 공간 개수 확인
-	for (int spaceStatePosY = 0; spaceStatePosY < tetro.size(); spaceStatePosY++)
+	// 테트로미노 모양 별로 빈칸 확인
+	switch (blockForm)
 	{
-		for (int spaceStatePosX = 0; spaceStatePosX < tetro[0].size(); spaceStatePosX++)
-		{
-			if ((blockForm == 5 && selectedRotationNum == 3) || (blockForm == 6 && selectedRotationNum == 1))
-			{
-				if (spaceState[spaceStatePosY][spaceStatePosX] == 0 && spaceStatePosY < 2)
-				{
-					weight++;
-				}
-				else
-				{
-					weight += 2;
-				}
-			}
-			else
-			{
-				if (spaceState[spaceStatePosY][spaceStatePosX] == 0 && spaceStatePosY < spaceState.size() / 2)
-				{
-					weight++;
-				}
-				else
-				{
-					weight += 2;
-				}
-			}
+	case 0:
+	case 1:
+		IAndOTetroBlank();
+		break;
+	case 2:
+		TTetroBlank();
+		break;
+	case 3:
+		STetroBlank();
+		break;
+	case 4:
+		ZTetroBlank();
+		break;
+	case 5:
+		JTetroBlank();
+		break;
+	case 6:
+		LTetroBlank();
+		break;
+	}
 
+	// 빈칸 정보 저장
+	std::vector<int> inputValue;
+	inputValue.push_back(tetroRotationNum); // 테트로미노 회전상태
+	inputValue.push_back(tetroLeftmostPosX); // 테트로미노를 배치할 X좌표
+	inputValue.push_back(posY); // 테트로미노가 배치되었을 때 Y좌표
+	inputValue.push_back(blankCount); // 빈칸 개수
+	deploymentInfo.push_back(inputValue);
+
+	// 초기화
+	spaceStateContainer.clear();
+	blankCount = 0;
+}
+
+void CPU::IAndOTetroBlank()
+{
+	for (int vectorSearchingPosY = 0; vectorSearchingPosY < spaceStateContainer.size(); vectorSearchingPosY++)
+	{
+		for (int vectorSearchingPosX = 0; vectorSearchingPosX < spaceStateContainer[0].size(); vectorSearchingPosX++)
+		{
+			if (spaceStateContainer[vectorSearchingPosY][vectorSearchingPosX] == 0)
+			{
+				if (vectorSearchingPosY == (spaceStateContainer.size() - 1) && (vectorSearchingPosX == 0 || vectorSearchingPosX == spaceStateContainer[0].size() - 1))
+				{
+					blankCount += 0;
+				}
+				else if (vectorSearchingPosY == (spaceStateContainer.size() - 1) && (vectorSearchingPosX > 0 && vectorSearchingPosX < spaceStateContainer[0].size() - 1))
+				{
+					blankCount += 7;
+				}
+				else
+				{
+					blankCount++;
+				}
+			}
 		}
 	}
 }
 
-// 가중치가 가장 적은 벡터를 찾는 로직
-void CPU::SearchSmallestWeight()
+void CPU::TTetroBlank()
 {
-	int smallestWeightNum = weightInfo[0][2];
-
-	// 가장 적은 가중치 확인
-	for (int vectorNum = 1; vectorNum < weightInfo.size(); vectorNum++)
+	for (int vectorSearchingPosY = 0; vectorSearchingPosY < spaceStateContainer.size(); vectorSearchingPosY++)
 	{
-		if (smallestWeightNum > weightInfo[vectorNum][2])
+		for (int vectorSearchingPosX = 0; vectorSearchingPosX < spaceStateContainer[0].size(); vectorSearchingPosX++)
 		{
-			smallestWeightNum = weightInfo[vectorNum][2];
+			if (spaceStateContainer[vectorSearchingPosY][vectorSearchingPosX] == 0 && tetroRotationNum == 0)
+			{
+				if (vectorSearchingPosY == 0 && (vectorSearchingPosX == 0 || vectorSearchingPosX == 4))
+				{
+					blankCount += 0;
+				}
+				else if (vectorSearchingPosY == 2 && (vectorSearchingPosX == 0 || vectorSearchingPosX == 4))
+				{
+					blankCount += 0;
+				}
+				else if (vectorSearchingPosY == 2 && (vectorSearchingPosX > 0 && vectorSearchingPosX < 4))
+				{
+					blankCount += 7;
+				}
+				else
+				{
+					blankCount++;
+				}
+			}
+			else if (spaceStateContainer[vectorSearchingPosY][vectorSearchingPosX] == 0 && tetroRotationNum == 1)
+			{
+				if (vectorSearchingPosY == 0 && vectorSearchingPosX == 3)
+				{
+					blankCount += 0;
+				}
+				else if (vectorSearchingPosY == 2 && vectorSearchingPosX == 3)
+				{
+					blankCount += 0;
+				}
+				else if (vectorSearchingPosY == 2 && vectorSearchingPosX == 2)
+				{
+					blankCount += 7;
+				}
+				else if (vectorSearchingPosY == 3 && (vectorSearchingPosX == 0 || vectorSearchingPosX == 2 || vectorSearchingPosX == 3))
+				{
+					blankCount += 0;
+				}
+				else if (vectorSearchingPosY == 3 && vectorSearchingPosX == 1)
+				{
+					blankCount += 7;
+				}
+				else
+				{
+					blankCount++;
+				}
+			}
+			else if (spaceStateContainer[vectorSearchingPosY][vectorSearchingPosX] == 0 && tetroRotationNum == 2)
+			{
+				if (vectorSearchingPosY == 1 && (vectorSearchingPosX == 0 || vectorSearchingPosX == 4))
+				{
+					blankCount += 0;
+				}
+				else if (vectorSearchingPosY == 1 && (vectorSearchingPosX == 1 || vectorSearchingPosX == 3))
+				{
+					blankCount += 7;
+				}
+				else if (vectorSearchingPosY == 2 && (vectorSearchingPosX == 0 || vectorSearchingPosX == 1 || vectorSearchingPosX == 3 || vectorSearchingPosX == 4))
+				{
+					blankCount += 0;
+				}
+				else if (vectorSearchingPosY == 2 && vectorSearchingPosX == 2)
+				{
+					blankCount += 7;
+				}
+				else
+				{
+					blankCount++;
+				}
+			}
+			else if (spaceStateContainer[vectorSearchingPosY][vectorSearchingPosX] == 0 && tetroRotationNum == 3)
+			{
+				if (vectorSearchingPosY == 0 && vectorSearchingPosX == 0)
+				{
+					blankCount += 0;
+				}
+				else if (vectorSearchingPosY == 2 && vectorSearchingPosX == 0)
+				{
+					blankCount += 0;
+				}
+				else if (vectorSearchingPosY == 2 && vectorSearchingPosX == 1)
+				{
+					blankCount += 7;
+				}
+				else if (vectorSearchingPosY == 3 && (vectorSearchingPosX == 0 || vectorSearchingPosX == 1 || vectorSearchingPosX == 3))
+				{
+					blankCount += 0;
+				}
+				else if (vectorSearchingPosY == 3 && vectorSearchingPosX == 2)
+				{
+					blankCount += 7;
+				}
+				else
+				{
+					blankCount++;
+				}
+			}
+		}
+	}
+}
+
+void CPU::STetroBlank()
+{
+	for (int vectorSearchingPosY = 0; vectorSearchingPosY < spaceStateContainer.size(); vectorSearchingPosY++)
+	{
+		for (int vectorSearchingPosX = 0; vectorSearchingPosX < spaceStateContainer[0].size(); vectorSearchingPosX++)
+		{
+			if (spaceStateContainer[vectorSearchingPosY][vectorSearchingPosX] == 0 && tetroRotationNum == 0)
+			{
+				if (vectorSearchingPosY == 0 && vectorSearchingPosX == 0)
+				{
+					blankCount += 0;
+				}
+				else if (vectorSearchingPosY == 1 && vectorSearchingPosX == 4)
+				{
+					blankCount += 0;
+				}
+				else if (vectorSearchingPosY == 1 && vectorSearchingPosX == 3)
+				{
+					blankCount += 7;
+				}
+				else if (vectorSearchingPosY == 2 && (vectorSearchingPosX == 0 || vectorSearchingPosX == 3 || vectorSearchingPosX == 4))
+				{
+					blankCount += 0;
+				}
+				else if (vectorSearchingPosY == 2 && (vectorSearchingPosX == 1 || vectorSearchingPosX == 2))
+				{
+					blankCount += 7;
+				}
+				else
+				{
+					blankCount++;
+				}
+			}
+			else if (spaceStateContainer[vectorSearchingPosY][vectorSearchingPosX] == 0 && tetroRotationNum == 1)
+			{
+				if (vectorSearchingPosY == 0 && vectorSearchingPosX == 3)
+				{
+					blankCount += 0;
+				}
+				else if (vectorSearchingPosY == 2 && vectorSearchingPosX == 0)
+				{
+					blankCount += 0;
+				}
+				else if (vectorSearchingPosY == 2 && vectorSearchingPosX == 1)
+				{
+					blankCount += 7;
+				}
+				else if (vectorSearchingPosY == 3 && (vectorSearchingPosX == 0 || vectorSearchingPosX == 1 || vectorSearchingPosX == 3))
+				{
+					blankCount += 0;
+				}
+				else if (vectorSearchingPosY == 3 && vectorSearchingPosX == 2)
+				{
+					blankCount += 7;
+				}
+				else
+				{
+					blankCount++;
+				}
+			}
+		}
+	}
+}
+
+void CPU::ZTetroBlank()
+{
+	for (int vectorSearchingPosY = 0; vectorSearchingPosY < spaceStateContainer.size(); vectorSearchingPosY++)
+	{
+		for (int vectorSearchingPosX = 0; vectorSearchingPosX < spaceStateContainer[0].size(); vectorSearchingPosX++)
+		{
+			if (spaceStateContainer[vectorSearchingPosY][vectorSearchingPosX] == 0 && tetroRotationNum == 0)
+			{
+				if (vectorSearchingPosY == 0 && vectorSearchingPosX == 4)
+				{
+					blankCount += 0;
+				}
+				else if (vectorSearchingPosY == 1 && vectorSearchingPosX == 0)
+				{
+					blankCount += 0;
+				}
+				else if (vectorSearchingPosY == 1 && vectorSearchingPosX == 1)
+				{
+					blankCount += 7;
+				}
+				else if (vectorSearchingPosY == 2 && (vectorSearchingPosX == 0 || vectorSearchingPosX == 1 || vectorSearchingPosX == 4))
+				{
+					blankCount += 0;
+				}
+				else if (vectorSearchingPosY == 2 && (vectorSearchingPosX == 2 || vectorSearchingPosX == 3))
+				{
+					blankCount += 7;
+				}
+				else
+				{
+					blankCount++;
+				}
+			}
+			else if (spaceStateContainer[vectorSearchingPosY][vectorSearchingPosX] == 0 && tetroRotationNum == 1)
+			{
+				if (vectorSearchingPosY == 0 && vectorSearchingPosX == 0)
+				{
+					blankCount += 0;
+				}
+				else if (vectorSearchingPosY == 2 && vectorSearchingPosX == 3)
+				{
+					blankCount += 0;
+				}
+				else if (vectorSearchingPosY == 2 && vectorSearchingPosX == 2)
+				{
+					blankCount += 7;
+				}
+				else if (vectorSearchingPosY == 3 && (vectorSearchingPosX == 0 || vectorSearchingPosX == 2 || vectorSearchingPosX == 3))
+				{
+					blankCount += 0;
+				}
+				else if (vectorSearchingPosY == 3 && vectorSearchingPosX == 1)
+				{
+					blankCount += 7;
+				}
+				else
+				{
+					blankCount++;
+				}
+			}
+		}
+	}
+}
+
+void CPU::JTetroBlank()
+{
+	for (int vectorSearchingPosY = 0; vectorSearchingPosY < spaceStateContainer.size(); vectorSearchingPosY++)
+	{
+		for (int vectorSearchingPosX = 0; vectorSearchingPosX < spaceStateContainer[0].size(); vectorSearchingPosX++)
+		{
+			if (spaceStateContainer[vectorSearchingPosY][vectorSearchingPosX] == 0 && tetroRotationNum == 0)
+			{
+				if (vectorSearchingPosY == 0 && vectorSearchingPosX == 4)
+				{
+					blankCount += 0;
+				}
+				else if (vectorSearchingPosY == 2 && (vectorSearchingPosX == 0 || vectorSearchingPosX == 4))
+				{
+					blankCount += 0;
+				}
+				else if (vectorSearchingPosY == 2 && (vectorSearchingPosX > 0 && vectorSearchingPosX < 4))
+				{
+					blankCount += 7;
+				}
+				else
+				{
+					blankCount++;
+				}
+			}
+			else if (spaceStateContainer[vectorSearchingPosY][vectorSearchingPosX] == 0 && tetroRotationNum == 1)
+			{
+				if ((vectorSearchingPosY == 1 || vectorSearchingPosY == 2) && vectorSearchingPosX == 3)
+				{
+					blankCount += 0;
+				}
+				else if ((vectorSearchingPosY == 1 || vectorSearchingPosY == 2) && vectorSearchingPosX == 2)
+				{
+					blankCount += 7;
+				}
+				else if (vectorSearchingPosY == 3 && (vectorSearchingPosX == 0 || vectorSearchingPosX == 2 || vectorSearchingPosX == 3))
+				{
+					blankCount += 0;
+				}
+				else if (vectorSearchingPosY == 3 && vectorSearchingPosX == 1)
+				{
+					blankCount += 7;
+				}
+				else
+				{
+					blankCount++;
+				}
+			}
+			else if (spaceStateContainer[vectorSearchingPosY][vectorSearchingPosX] == 0 && tetroRotationNum == 2)
+			{
+				if (vectorSearchingPosY == 1 && vectorSearchingPosX == 0)
+				{
+					blankCount += 0;
+				}
+				else if (vectorSearchingPosY == 1 && (vectorSearchingPosX == 1 || vectorSearchingPosX == 2))
+				{
+					blankCount += 7;
+				}
+				else if (vectorSearchingPosY == 2 && (vectorSearchingPosX == 0 || vectorSearchingPosX == 1 || vectorSearchingPosX == 2 || vectorSearchingPosX == 4))
+				{
+					blankCount += 0;
+				}
+				else if (vectorSearchingPosY == 2 && vectorSearchingPosX == 3)
+				{
+					blankCount += 7;
+				}
+				else
+				{
+					blankCount++;
+				}
+			}
+			else if (spaceStateContainer[vectorSearchingPosY][vectorSearchingPosX] == 0 && tetroRotationNum == 3)
+			{
+				if (vectorSearchingPosY == 0 && vectorSearchingPosX == 0)
+				{
+					blankCount += 0;
+				}
+				else if (vectorSearchingPosY == 1 && vectorSearchingPosX == 0)
+				{
+					blankCount += 0;
+				}
+				else if (vectorSearchingPosY == 3 && (vectorSearchingPosX == 0 || vectorSearchingPosX == 3))
+				{
+					blankCount += 0;
+				}
+				else if (vectorSearchingPosY == 3 && (vectorSearchingPosX == 1 || vectorSearchingPosX == 2))
+				{
+					blankCount += 7;
+				}
+				else
+				{
+					blankCount++;
+				}
+			}
+		}
+	}
+}
+
+void CPU::LTetroBlank()
+{
+	for (int vectorSearchingPosY = 0; vectorSearchingPosY < spaceStateContainer.size(); vectorSearchingPosY++)
+	{
+		for (int vectorSearchingPosX = 0; vectorSearchingPosX < spaceStateContainer[0].size(); vectorSearchingPosX++)
+		{
+			if (spaceStateContainer[vectorSearchingPosY][vectorSearchingPosX] == 0 && tetroRotationNum == 0)
+			{
+				if (vectorSearchingPosY == 0 && vectorSearchingPosX == 0)
+				{
+					blankCount += 0;
+				}
+				else if (vectorSearchingPosY == 2 && (vectorSearchingPosX == 0 || vectorSearchingPosX == 4))
+				{
+					blankCount += 0;
+				}
+				else if (vectorSearchingPosY == 2 && (vectorSearchingPosX > 0 && vectorSearchingPosX < 4))
+				{
+					blankCount += 7;
+				}
+				else
+				{
+					blankCount++;
+				}
+			}
+			else if (spaceStateContainer[vectorSearchingPosY][vectorSearchingPosX] == 0 && tetroRotationNum == 1)
+			{
+				if ((vectorSearchingPosY == 0 || vectorSearchingPosY == 1) && vectorSearchingPosX == 3)
+				{
+					blankCount += 0;
+				}
+				else if (vectorSearchingPosY == 3 && (vectorSearchingPosX == 0 || vectorSearchingPosX == 3))
+				{
+					blankCount += 0;
+				}
+				else if (vectorSearchingPosY == 3 && (vectorSearchingPosX == 1 || vectorSearchingPosX == 2))
+				{
+					blankCount += 7;
+				}
+				else
+				{
+					blankCount++;
+				}
+			}
+			else if (spaceStateContainer[vectorSearchingPosY][vectorSearchingPosX] == 0 && tetroRotationNum == 2)
+			{
+				if (vectorSearchingPosY == 1 && vectorSearchingPosX == 4)
+				{
+					blankCount += 0;
+				}
+				else if (vectorSearchingPosY == 1 && (vectorSearchingPosX == 2 || vectorSearchingPosX == 3))
+				{
+					blankCount += 7;
+				}
+				else if (vectorSearchingPosY == 2 && (vectorSearchingPosX == 0 || vectorSearchingPosX == 2 || vectorSearchingPosX == 3 || vectorSearchingPosX == 4))
+				{
+					blankCount += 0;
+				}
+				else if (vectorSearchingPosY == 2 && vectorSearchingPosX == 1)
+				{
+					blankCount += 7;
+				}
+				else
+				{
+					blankCount++;
+				}
+			}
+			else if (spaceStateContainer[vectorSearchingPosY][vectorSearchingPosX] == 0 && tetroRotationNum == 3)
+			{
+				if ((vectorSearchingPosY == 1 || vectorSearchingPosY == 2) && vectorSearchingPosX == 0)
+				{
+					blankCount += 0;
+				}
+				else if ((vectorSearchingPosY == 1 || vectorSearchingPosY == 2) && vectorSearchingPosX == 1)
+				{
+					blankCount += 7;
+				}
+				else if (vectorSearchingPosY == 3 && (vectorSearchingPosX == 0 || vectorSearchingPosX == 1 || vectorSearchingPosX == 3))
+				{
+					blankCount += 0;
+				}
+				else if (vectorSearchingPosY == 3 && vectorSearchingPosX == 2)
+				{
+					blankCount += 7;
+				}
+				else
+				{
+					blankCount++;
+				}
+			}
+		}
+	}
+}
+
+void CPU::SearchSmallestBlankNum()
+{
+	// 가장 적은 빈칸 개수 탐색
+	int smallestWeightNum = deploymentInfo[0][3];
+
+	for (int vectorNum = 1; vectorNum < deploymentInfo.size(); vectorNum++)
+	{
+		if (smallestWeightNum > deploymentInfo[vectorNum][3])
+		{
+			smallestWeightNum = deploymentInfo[vectorNum][3];
 		}
 	}
 
-	// 가장 적은 가중치의 정보를 가지고 있는 벡터 부분만 따로 저장
-	for (int vectorNum = 0; vectorNum < weightInfo.size(); vectorNum++)
+	// 가장 적은 빈칸 개수 정보를 가지고 있는 부분만 따로 저장
+	for (int vectorNum = 0; vectorNum < deploymentInfo.size(); vectorNum++)
 	{
 		std::vector<int> inputValue;
 
-		if (smallestWeightNum == weightInfo[vectorNum][2])
+		if (smallestWeightNum == deploymentInfo[vectorNum][3])
 		{
-			inputValue.push_back(weightInfo[vectorNum][0]);
-			inputValue.push_back(weightInfo[vectorNum][1]);
-			inputValue.push_back(weightInfo[vectorNum][3]);
-			smallestWeight.push_back(inputValue);
+			inputValue.push_back(deploymentInfo[vectorNum][0]);
+			inputValue.push_back(deploymentInfo[vectorNum][1]);
+			inputValue.push_back(deploymentInfo[vectorNum][2]);
+			smallestBlank.push_back(inputValue);
 		}
 	}
 }
 
-// 테트로미노를 움직일 위치를 선택하는 로직
-void CPU::SearchMovePos()
+void CPU::SelectMovePos()
 {
-	
-	int biggestPosY = smallestWeight[0][2];
+	// 테트로미노가 배치될 가장 낮은 자리 탐색
+	int biggestPosYNum = smallestBlank[0][2];
 
-	for (int i = 1; i < smallestWeight.size(); i++)
+	for (int i = 1; i < smallestBlank.size(); i++)
 	{
-		if (biggestPosY < smallestWeight[i][2])
+		if (biggestPosYNum < smallestBlank[i][2])
 		{
-			biggestPosY = smallestWeight[i][2];
+			biggestPosYNum = smallestBlank[i][2];
 		}
 	}
 
-	for (int i = 0; i < smallestWeight.size(); i++)
+	// 가장 낮은 자리 정보를 가지고 있는 부분만 따로 저장
+	std::vector<std::vector<int>> biggestPosY;
+
+	for (int i = 0; i < smallestBlank.size(); i++)
 	{
-		if (biggestPosY == smallestWeight[i][2])
+		std::vector<int> inputValue;
+
+		if (biggestPosYNum == smallestBlank[i][2])
 		{
-			selectedRotationNum = smallestWeight[i][0];
-			selectedMovePosX = smallestWeight[i][1];
+			inputValue.push_back(smallestBlank[i][0]);
+			inputValue.push_back(smallestBlank[i][1]);
+			biggestPosY.push_back(inputValue);
 		}
 	}
-	
-	weightInfo.clear();
-	smallestWeight.clear();
+
+	// 회전상태 및 이동시킬 X좌표 선택
+	int randValue = rand() % biggestPosY.size();
+
+	selectedRotationNum = biggestPosY[randValue][0];
+	selectedMovePosX = biggestPosY[randValue][1];
+	biggestPosY.clear();
+
+	deploymentInfo.clear();
+	smallestBlank.clear();
 }
 
-// 선택한 위치로 테트로미노를 이동
 void CPU::MoveToSelectPos()
 {
+	/*
+	endTime = clock();
+
+	if ((float)(endTime - startMoveTime) >= 200.0f) 
+	{
+		// 회전
+		if (turnComplete != true)
+		{
+			if (selectedRotationNum != blockRotation)
+			{
+				moveBlockRotate();
+			}
+			else
+			{
+				turnComplete = true;
+			}
+		}
+		// 회전을 완료했으면 이동
+		else if (turnComplete == true)
+		{
+			if (selectedMovePosX > x)
+			{
+				moveBlockRight();
+			}
+			else if (selectedMovePosX < x)
+			{
+				moveBlockLeft();
+			}
+			// 회전 및 이동 모두 완료시 하드드롭
+			else
+			{
+				moveBlockHardDrop();
+			}
+		}
+
+		startMoveTime = clock();
+	}
+	*/
 	if (selectedRotationNum != blockRotation)
 	{
 		moveBlockRotate();
@@ -1070,16 +1565,14 @@ void CPU::MoveToSelectPos()
 	{
 		moveBlockRight();
 	}
-
-	if (selectedMovePosX < x)
+	else if (selectedMovePosX < x)
 	{
 		moveBlockLeft();
 	}
+	// 회전 및 이동 모두 완료시 하드드롭
+	if (selectedMovePosX == x && selectedRotationNum == blockRotation)
 
-	/*
-	if ((selectedRotationNum == blockRotation) && (selectedMovePosX == x))
 	{
 		moveBlockHardDrop();
 	}
-	*/
 }
