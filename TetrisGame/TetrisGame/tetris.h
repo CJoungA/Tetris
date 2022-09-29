@@ -127,50 +127,61 @@ protected:
 class CPU : public Tetris
 {
 public:
+	// 생성자 & 소멸자
 	CPU();
 	~CPU();
 
+	// 오버라이딩 & 게임 루프
 	void keyInputEvent();
 	void update();
 	void render();
 
+	// 오버라이딩
 	void drawInformation();
 	void fixBlock();
+
+	// 게임 종료
 	void gameExit();
 
-	void TetrisAIAlgorithm(); // 테트리스 AI 알고리즘
-	void TetroPosCheck(); // 테트로미노의 모든 좌표 확인
-	void CreateSpaceStateVector(); // 공간 상태를 저장하는 벡터 생성
-	void LeftmostPosXThatTetroCanMove(); // 테트로미노가 움직일 수 있는 가장 왼쪽 X 좌표
-	void RightmostPosXThatTetroCanMove(); // 테트로미노가 움직일 수 있는 가장 오른쪽 X 좌표
-	void TetroMoveToBottom(); // 움직일 수 있는 모든 X 좌표에서 바닥으로 이동
-	void CheckWeightLogic(int posX, int posY); // 가중치를 확인하기 위한 로직
+	// AI
+	void AIAlgorithm(); // AI 알고리즘
+	void TetroPosCheck(); // 테트로미노 모든 칸의 좌표 확인
+	void CreateTetroContainer(); // 테트로미노를 담을 벡터 생성
+	void LeftmostPosXThatTetroCanMove(); // 테트로미노가 생성될 수 있는 가장 왼쪽 X 좌표
+	void RightmostPosXThatTetroCanMove(); // 테트로미노가 생성될 수 있는 가장 오른쪽 X 좌표
+	void TetroMoveToBottom(); // 테트로미노가 생성될 수 있는 모든 X 좌표에서 바닥으로 이동
+	void CheckBlank(int posX, int posY); // 빈칸 확인
+	void IAndOTetroBlank(); // I, O 테트로미노일 때 빈칸 확인
+	void TTetroBlank(); // T 테트로미노일 때 빈칸 확인
+	void STetroBlank(); // S 테트로미노일 때 빈칸 확인
+	void ZTetroBlank(); // Z 테트로미노일 때 빈칸 확인
+	void JTetroBlank(); // J 테트로미노일 때 빈칸 확인
+	void LTetroBlank(); // L 테트로미노일 때 빈칸 확인
+	void SearchSmallestBlankNum(); // 빈칸이 가장 적은 벡터 검색
+	void SelectMovePos(); // 테트로미노가 움직일 위치를 선택
 
-	void SearchSmallestWeight(); // 가중치가 가장 적은 벡터를 찾는 로직
-	void SearchMovePos(); // 테트로미노를 움직일 위치를 선택하는 로직
-
+	// 테트로미노 이동
 	void MoveToSelectPos(); // 선택한 위치로 테트로미노를 이동
 
-
 private:
-	std::vector<std::vector<int>> tetroPos; // 테트로미노의 모든 칸의 위치가 저장되는 벡터
-	std::vector<std::vector<int>> tetro; // 테트로미노가 저장되어 있는 벡터
-	std::vector<std::vector<int>> spaceState; // 공간이 차있는지 비었는지 저장하는 벡터
-	std::vector<std::vector<int>> weightInfo; // 가중치 정보를 저장하는 벡터
-	std::vector<std::vector<int>> smallestWeight; // 가중치가 가장 적은 정보만 저장하는 벡터
+	std::vector<std::vector<int>> tetroPos; // 테트로미노 모든 칸의 좌표를 저장할 벡터
+	std::vector<std::vector<int>> tetroContainer; // 테트로미노를 담을 벡터
+	std::vector<std::vector<int>> spaceStateContainer; // 공간상태를 저장하는 벡터
+	std::vector<std::vector<int>> deploymentInfo; // 테트로미노가 배치되었을 때의 정보를 저장하는 벡터
+	std::vector<std::vector<int>> smallestBlank; // 빈칸이 가장 적은 정보만 저장하는 벡터
 
-	int tetroRotationNum; // 알고리즘을 위한 테트리스 회전 번호
-	int tetroCreatePosX; // 알고리즘을 위한 테트로미노가 생성되는 위치의 X 좌표
-	int tetroCreatePosY; // 알고리즘을 위한 테트로미노가 생성되는 위치의 Y 좌표
+	int tetroRotationNum; // 테트로미노 회전 상태
+	int tetroCreatePosX; // 테트로미노 생성 X 좌표
+	int tetroCreatePosY; // 테트로미노 생성 Y 좌표
+	int tetroLeftmostPosX; // 테트로미노가 생성될 수 있는 가장 왼쪽 X 좌표
+	int tetroRightmostPosX; // 테트로미노가 생성될 수 있는 가장 오른쪽 X 좌표
+	int blankCount; // 빈칸 개수
+	int selectedRotationNum; // 선택된 회전 상태
+	int selectedMovePosX; // 선택된 배치할 X 좌표
 
-	int tetroLeftmostPosX; // 테트로미노가 움직일 수 있는 가장 왼쪽 X 좌표
-	int tetroRightmostPosX; // 테트로미노가 움직일 수 있는 가장 오른쪽 X 좌표
+	clock_t startMoveTime; // 0.2초가 지났는지 확인하는 변수
 
-	int weight; // 가중치
-
-	int selectedRotationNum;
-	int selectedMovePosX;
-
-	bool searchComplete;
-	bool checkWall; // 벽을 확인하는 변수
+	bool runAlgorithm;  // 알고리즘 작동 여부
+	bool checkWall; // 벽 확인
+	bool turnComplete; // 회전완료 여부
 };
