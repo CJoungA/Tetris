@@ -297,6 +297,7 @@ void Tetris::fixBlock() {
 					}
 				}
 			}
+			removeLine();
 			blockSet();	//블록 정보 초기화 및 블록 선택
 		}
 	}
@@ -638,7 +639,6 @@ void CPU::update()
 	MoveToSelectPos();
 	dropBlock();
 	fixBlock();
-	removeLine();
 }
 
 void CPU::render() 
@@ -680,10 +680,48 @@ void CPU::fixBlock()
 					}
 				}
 			}
+			removeLine();
 			blockSet();
 
 			runAlgorithm = true; // AI 알고리즘 다시 작동
 			turnComplete = false; // 테트로미노 회전 완료 상태를 false로 전환
+		}
+	}
+}
+
+void CPU::removeLine() 
+{
+	for (int i = 20; i >= 0; i--) 
+	{
+		count = 0;
+		for (int j = 1; j < 11; j++) 
+		{
+			if (map[i][j] == 2) 
+			{
+				count++;
+			}
+		}
+
+		if (count >= 10) 
+		{
+			setScore();
+
+			for (int j = 0; i - j >= 0; j++) 
+			{
+				for (int k = 1; k < 11; k++) 
+				{
+					if (i - j - 1 >= 0) 
+					{
+						map[i - j][k] = map[i - j - 1][k];
+					}
+					else 
+					{
+						map[i - j][k] = 1;
+					}
+					map[1][k] = 0;
+				}
+			}
+			i++;
 		}
 	}
 }
@@ -1506,25 +1544,25 @@ void CPU::SelectMovePos()
 	// 테트로미노가 배치될 수 있는 가장 낮은 곳의 Y 좌표 탐색
 	int biggestPosYNum = smallestBlank[0][2];
 
-	for (int i = 1; i < smallestBlank.size(); i++)
+	for (int vectorNum = 1; vectorNum < smallestBlank.size(); vectorNum++)
 	{
-		if (biggestPosYNum < smallestBlank[i][2])
+		if (biggestPosYNum < smallestBlank[vectorNum][2])
 		{
-			biggestPosYNum = smallestBlank[i][2];
+			biggestPosYNum = smallestBlank[vectorNum][2];
 		}
 	}
 
 	// 가장 낮은 곳의 정보를 가지고 있는 부분만 따로 저장
 	std::vector<std::vector<int>> biggestPosY;
 
-	for (int i = 0; i < smallestBlank.size(); i++)
+	for (int vectorNum = 0; vectorNum < smallestBlank.size(); vectorNum++)
 	{
 		std::vector<int> inputValue;
 
-		if (biggestPosYNum == smallestBlank[i][2])
+		if (biggestPosYNum == smallestBlank[vectorNum][2])
 		{
-			inputValue.push_back(smallestBlank[i][0]);
-			inputValue.push_back(smallestBlank[i][1]);
+			inputValue.push_back(smallestBlank[vectorNum][0]);
+			inputValue.push_back(smallestBlank[vectorNum][1]);
 			biggestPosY.push_back(inputValue);
 		}
 	}
