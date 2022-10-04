@@ -16,6 +16,8 @@ using std::cout;
 using std::cin;
 #endif
 
+int selectOption(); // 옵션 선택
+
 void setCursor();	//커서 숨기기
 void gotoxy(int x, int y);	//커서이동
 
@@ -120,7 +122,10 @@ protected:
 		{4,4,4,4,4,4,4,4,4,4,4,4}
 	};
 
-	clock_t startDropTime, endTime, startGroundTime;	//시간정보
+	//시간정보
+	clock_t startDropTime = 0;
+	clock_t endTime = 0; 
+	clock_t startGroundTime = 0;	
 
 };
 
@@ -157,7 +162,6 @@ public:
 	void ZTetroBlank(); // Z 테트로미노일 때 빈칸 확인
 	void JTetroBlank(); // J 테트로미노일 때 빈칸 확인
 	void LTetroBlank(); // L 테트로미노일 때 빈칸 확인
-	void SearchSmallestBlankNum(); // 빈칸이 가장 적은 벡터 검색
 	void SelectMovePos(); // 테트로미노가 움직일 위치를 선택
 
 	// 테트로미노 이동
@@ -168,7 +172,6 @@ private:
 	std::vector<std::vector<int>> tetroContainer; // 테트로미노를 담을 벡터
 	std::vector<std::vector<int>> spaceStateContainer; // 공간상태를 저장하는 벡터
 	std::vector<std::vector<int>> deploymentInfo; // 테트로미노가 배치되었을 때의 정보를 저장하는 벡터
-	std::vector<std::vector<int>> smallestBlank; // 빈칸이 가장 적은 정보만 저장하는 벡터
 
 	int tetroRotationNum; // 테트로미노 회전 상태
 	int tetroCreatePosX; // 테트로미노 생성 X 좌표
