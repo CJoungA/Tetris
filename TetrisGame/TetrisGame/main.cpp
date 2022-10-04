@@ -1,16 +1,10 @@
 ﻿#include "Tetris.h"
 
 int main() {
-	// ----- Orange Code -----
 	srand((unsigned)time(nullptr));
 
-	int input = 1;
-	cout << "[1. Player Play]" << std::endl;
-	cout << "[else. CPU Play]" << std::endl;
-	cout << " >> ";
-	cin >> input;
+	int input = selectOption();
 	cout << std::endl;
-	// -----------------------
 
 	if (input == 1)
 	{
@@ -33,8 +27,6 @@ int main() {
 			tetris.gameOver();	//루프종료
 		}
 	}
-
-	// ----- Orange Code -----
 	else
 	{
 		CPU cpuTetris;
@@ -51,7 +43,6 @@ int main() {
 			cpuTetris.gameOver();
 		}
 	}
-	// -----------------------
 
 	return 0;
 }
