@@ -144,6 +144,7 @@ public:
 	// 오버라이딩
 	void drawInformation();
 	void fixBlock();
+	void removeLine();
 
 	// 게임 종료
 	void gameExit();
