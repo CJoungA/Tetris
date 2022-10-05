@@ -150,42 +150,37 @@ public:
 	void gameExit();
 
 	// AI
-	void AIAlgorithm(); // AI 알고리즘
-	void TetroPosCheck(); // 테트로미노 모든 칸의 좌표 확인
-	void CreateTetroContainer(); // 테트로미노를 담을 벡터 생성
-	void LeftmostPosXThatTetroCanMove(); // 테트로미노가 생성될 수 있는 가장 왼쪽 X 좌표
-	void RightmostPosXThatTetroCanMove(); // 테트로미노가 생성될 수 있는 가장 오른쪽 X 좌표
-	void TetroMoveToBottom(); // 테트로미노가 생성될 수 있는 모든 X 좌표에서 바닥으로 이동
-	void CheckBlank(int posX, int posY); // 빈칸 확인
-	void IAndOTetroBlank(); // I, O 테트로미노일 때 빈칸 확인
-	void TTetroBlank(); // T 테트로미노일 때 빈칸 확인
-	void STetroBlank(); // S 테트로미노일 때 빈칸 확인
-	void ZTetroBlank(); // Z 테트로미노일 때 빈칸 확인
-	void JTetroBlank(); // J 테트로미노일 때 빈칸 확인
-	void LTetroBlank(); // L 테트로미노일 때 빈칸 확인
-	void SelectMovePos(); // 테트로미노가 움직일 위치를 선택
+	void AI_Pipeline(); // AI 파이프라인
+	void CreateBlankCheckBlock(); // 빈 칸 확인용 블록 생성
+	void MoveBlankCheckBlock(); // 빈 칸 확인용 블록을 검사할 위치로 이동
+	void UpdateBlockOverlapPart(int posX, int posY); // 빈 칸 확인용 블록 중 벽 또는 저장된 블록과 겹친 부분의 값을 1로 변경
 
-	// 테트로미노 이동
-	void MoveToSelectPos(); // 선택한 위치로 테트로미노를 이동
+	int GetBlankCount(); // 빈 칸 확인용 블록 안의 빈 칸의 개수 가져오기
+	int CurrentBlock_IorO(int count); // 현재 블록이 I 또는 O 일때 빈 칸 개수 확인
+	int CurrentBlock_T(int count); // 현재 블록이 T 일때 빈 칸 개수 확인
+	int CurrentBlock_S(int count); // 현재 블록이 S 일때 빈 칸 개수 확인
+	int CurrentBlock_Z(int count); // 현재 블록이 Z 일때 빈 칸 개수 확인
+	int CurrentBlock_J(int count); // 현재 블록이 J 일때 빈 칸 개수 확인
+	int CurrentBlock_L(int count); // 현재 블록이 L 일때 빈 칸 개수 확인
+
+	void SelectBlockMovePos(); // 블록을 이동시킬 좌표 선택
+
+	void MoveToSelectPos(); // 선택한 위치로 블록을 이동
 
 private:
-	std::vector<std::vector<int>> tetroPos; // 테트로미노 모든 칸의 좌표를 저장할 벡터
-	std::vector<std::vector<int>> tetroContainer; // 테트로미노를 담을 벡터
-	std::vector<std::vector<int>> spaceStateContainer; // 공간상태를 저장하는 벡터
-	std::vector<std::vector<int>> deploymentInfo; // 테트로미노가 배치되었을 때의 정보를 저장하는 벡터
+	std::vector<std::vector<int>> blockPosInfo; // 블록의 모든 칸의 좌표 정보를 담는 벡터
+	std::vector<std::vector<int>> blankCheckBlock; // 빈 칸 확인용 블록
+	std::vector<std::vector<int>> blankCheckBlock_cpy; // 공간상태를 저장하는 벡터
+	std::vector<std::vector<int>> blockPlacementInfo; // 블록이 배치되었을 때의 정보를 담는 벡터
 
-	int tetroRotationNum; // 테트로미노 회전 상태
-	int tetroCreatePosX; // 테트로미노 생성 X 좌표
-	int tetroCreatePosY; // 테트로미노 생성 Y 좌표
-	int tetroLeftmostPosX; // 테트로미노가 생성될 수 있는 가장 왼쪽 X 좌표
-	int tetroRightmostPosX; // 테트로미노가 생성될 수 있는 가장 오른쪽 X 좌표
-	int blankCount; // 빈칸 개수
+	int blockLeftmostPosX; // 블록이 생성될 수 있는 가장 왼쪽 X 좌표
+	int blockRightmostPosX; // 블록이 생성될 수 있는 가장 오른쪽 X 좌표
 	int selectedRotationNum; // 선택된 회전 상태
 	int selectedMovePosX; // 선택된 배치할 X 좌표
 
 	clock_t startMoveTime; // 0.2초가 지났는지 확인하는 변수
 
-	bool runAlgorithm;  // 알고리즘 작동 여부
+	bool isRun;  // 실행 여부 확인
 	bool checkWall; // 벽 확인
 	bool turnComplete; // 회전완료 여부
 };
