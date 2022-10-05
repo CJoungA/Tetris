@@ -1010,16 +1010,16 @@ int CPU::GetBlankCount() {
 int CPU::CurrentBlock_IorO(int count) {
 
 	// 빈 칸 확인용 블록 안에 I 블록이 들어있는 경우 숫자에 해당하는 부분이 빈 칸일 경우 그 숫자만큼 빈 칸 개수 증가
-	// 1 □□□□ 1		1 □ 1				
-	// 0 7 7 7 7  0		1 □ 1				
-	//					1 □ 1				
-	//					1 □ 1
-	//					0 7  0
+	// 1 □ □ □ □ 1		1 □ 1				
+	// 0 7 7 7 7 0		1 □ 1				
+	//			1 □ 1				
+	//			1 □ 1
+	//			0 7 0
 
 	// 빈 칸 확인용 블록 안에 O 블록이 들어있는 경우 숫자에 해당하는 부분이 빈 칸일 경우 그 숫자만큼 빈 칸 개수 증가
-	// 1 □□ 1
-	// 1 □□ 1
-	// 0 7 7  0
+	// 1 □ □ 1
+	// 1 □ □ 1
+	// 0 7 7 0
 
 	for (int vectorSearchingPosY = 0; vectorSearchingPosY < blankCheckBlock_cpy.size(); vectorSearchingPosY++) {
 		for (int vectorSearchingPosX = 0; vectorSearchingPosX < blankCheckBlock_cpy[0].size(); vectorSearchingPosX++) {
@@ -1055,8 +1055,8 @@ int CPU::CurrentBlock_T(int count) {
 
 			// 빈 칸 확인용 블록 안에 0 번 회전한 T 블록이 들어있는 경우 숫자에 해당하는 부분이 빈 칸일 경우 그 숫자만큼 빈 칸 개수 증가
 			// 0 1 □ 1 0 						
-			// 0 □□□ 0 				
-			// 0 7 7 7  0		
+			// 0 □ □ □ 0 				
+			// 0 7 7 7 0		
 			if (blankCheckBlock_cpy[vectorSearchingPosY][vectorSearchingPosX] == 0 && blockRotation == 0) {
 
 				// 빈 칸 확인용 블록의 Y좌표가 0 이고 X좌표가 0 또는 4 인 경우 빈 칸 개수는 변동 X
@@ -1082,9 +1082,9 @@ int CPU::CurrentBlock_T(int count) {
 
 			// 빈 칸 확인용 블록 안에 1 번 회전한 T 블록이 들어있는 경우 숫자에 해당하는 부분이 빈 칸일 경우 그 숫자만큼 빈 칸 개수 증가
 			// 1 □ 1 0 						
-			// 1 □□ 1 				
+			// 1 □ □ 1 				
 			// 1 □ 7 0
-			// 0 7  0 0
+			// 0 7 0 0
 			else if (blankCheckBlock_cpy[vectorSearchingPosY][vectorSearchingPosX] == 0 && blockRotation == 1) {
 
 				// 빈 칸 확인용 블록의 Y좌표가 0 또는 2 이고 X좌표가 3 인 경우 빈 칸 개수는 변동 X
@@ -1114,9 +1114,9 @@ int CPU::CurrentBlock_T(int count) {
 			}
 
 			// 빈 칸 확인용 블록 안에 2 번 회전한 T 블록이 들어있는 경우 숫자에 해당하는 부분이 빈 칸일 경우 그 숫자만큼 빈 칸 개수 증가
-			// 1 □□□ 1 						
+			// 1 □ □ □ 1 						
 			// 0 7 □ 7 0 				
-			// 0 0 7  0 0
+			// 0 0 7 0 0
 			else if (blankCheckBlock_cpy[vectorSearchingPosY][vectorSearchingPosX] == 0 && blockRotation == 2) {
 
 				// 빈 칸 확인용 블록의 Y좌표가 1 이고 X좌표가 0 또는 4 인 경우 빈 칸 개수는 변동 X
@@ -1147,9 +1147,9 @@ int CPU::CurrentBlock_T(int count) {
 
 			// 빈 칸 확인용 블록 안에 3 번 회전한 T 블록이 들어있는 경우 숫자에 해당하는 부분이 빈 칸일 경우 그 숫자만큼 빈 칸 개수 증가
 			// 0 1 □ 1 						
-			// 1 □□ 1 				
+			// 1 □ □ 1 				
 			// 0 7 □ 1
-			// 0 0 7  0
+			// 0 0 7 0
 			else if (blankCheckBlock_cpy[vectorSearchingPosY][vectorSearchingPosX] == 0 && blockRotation == 3) {
 
 				// 빈 칸 확인용 블록의 Y좌표가 0 또는 2 이고 X좌표가 0 인 경우 빈 칸 개수는 변동 X
@@ -1189,9 +1189,9 @@ int CPU::CurrentBlock_S(int count) {
 		for (int vectorSearchingPosX = 0; vectorSearchingPosX < blankCheckBlock_cpy[0].size(); vectorSearchingPosX++) {
 
 			// 빈 칸 확인용 블록 안에 0 번 회전한 S 블록이 들어있는 경우 숫자에 해당하는 부분이 빈 칸일 경우 그 숫자만큼 빈 칸 개수 증가
-			// 0 1 □□ 1 						
-			// 1 □□ 7 0 				
-			// 0 7 7  0 0	
+			// 0 1 □ □ 1 						
+			// 1 □ □ 7 0 				
+			// 0 7 7 0 0	
 			if (blankCheckBlock_cpy[vectorSearchingPosY][vectorSearchingPosX] == 0 && blockRotation == 0) {
 
 				// 빈 칸 확인용 블록의 Y좌표가 0 이고 X좌표가 0 인 경우 빈 칸 개수는 변동 X
@@ -1227,9 +1227,9 @@ int CPU::CurrentBlock_S(int count) {
 
 			// 빈 칸 확인용 블록 안에 1 번 회전한 S 블록이 들어있는 경우 숫자에 해당하는 부분이 빈 칸일 경우 그 숫자만큼 빈 칸 개수 증가
 			// 1 □ 1 0 						
-			// 1 □□ 1 				
+			// 1 □ □ 1 				
 			// 0 7 □ 1	
-			// 0 0 7  0
+			// 0 0 7 0
 			else if (blankCheckBlock_cpy[vectorSearchingPosY][vectorSearchingPosX] == 0 && blockRotation == 1) {
 
 				// 빈 칸 확인용 블록의 Y좌표가 0 이고 X좌표가 3 인 경우 빈 칸 개수는 변동 X
@@ -1274,9 +1274,9 @@ int CPU::CurrentBlock_Z(int count) {
 		for (int vectorSearchingPosX = 0; vectorSearchingPosX < blankCheckBlock_cpy[0].size(); vectorSearchingPosX++) {
 
 			// 빈 칸 확인용 블록 안에 0 번 회전한 Z 블록이 들어있는 경우 숫자에 해당하는 부분이 빈 칸일 경우 그 숫자만큼 빈 칸 개수 증가
-			// 1 □□ 1 0 						
-			// 0 7 □□ 1 				
-			// 0 0 7 7  0	
+			// 1 □ □ 1 0 						
+			// 0 7 □ □ 1 				
+			// 0 0 7 7 0	
 			if (blankCheckBlock_cpy[vectorSearchingPosY][vectorSearchingPosX] == 0 && blockRotation == 0) {
 
 				// 빈 칸 확인용 블록의 Y좌표가 0 이고 X좌표가 4 인 경우 빈 칸 개수는 변동 X
@@ -1312,9 +1312,9 @@ int CPU::CurrentBlock_Z(int count) {
 
 			// 빈 칸 확인용 블록 안에 1 번 회전한 Z 블록이 들어있는 경우 숫자에 해당하는 부분이 빈 칸일 경우 그 숫자만큼 빈 칸 개수 증가
 			// 0 1 □ 1 						
-			// 1 □□ 1 				
+			// 1 □ □ 1 				
 			// 1 □ 7 0	
-			// 0 7  0 0
+			// 0 7 0 0
 			else if (blankCheckBlock_cpy[vectorSearchingPosY][vectorSearchingPosX] == 0 && blockRotation == 1) {
 
 				// 빈 칸 확인용 블록의 Y좌표가 0 이고 X좌표가 0 인 경우 빈 칸 개수는 변동 X
@@ -1360,8 +1360,8 @@ int CPU::CurrentBlock_J(int count) {
 
 			// 빈 칸 확인용 블록 안에 0 번 회전한 J 블록이 들어있는 경우 숫자에 해당하는 부분이 빈 칸일 경우 그 숫자만큼 빈 칸 개수 증가
 			// 1 □ 1 1 0 						
-			// 1 □□□ 1 				
-			// 0 7 7 7  0	
+			// 1 □ □ □ 1 				
+			// 0 7 7 7 0	
 			if (blankCheckBlock_cpy[vectorSearchingPosY][vectorSearchingPosX] == 0 && blockRotation == 0) {
 
 				// 빈 칸 확인용 블록의 Y좌표가 0 이고 X좌표가 4 인 경우 빈 칸 개수는 변동 X
@@ -1386,10 +1386,10 @@ int CPU::CurrentBlock_J(int count) {
 			}
 
 			// 빈 칸 확인용 블록 안에 1 번 회전한 J 블록이 들어있는 경우 숫자에 해당하는 부분이 빈 칸일 경우 그 숫자만큼 빈 칸 개수 증가
-			// 1 □□ 1 						
+			// 1 □ □ 1 						
 			// 1 □ 7 0 				
 			// 1 □ 7 0
-			// 0 7  0 0
+			// 0 7 0 0
 			else if (blankCheckBlock_cpy[vectorSearchingPosY][vectorSearchingPosX] == 0 && blockRotation == 1) {
 
 				// 빈 칸 확인용 블록의 Y좌표가 1 또는 2 이고 X좌표가 2 인 경우 빈 칸 개수는 7 만큼 증가
@@ -1419,9 +1419,9 @@ int CPU::CurrentBlock_J(int count) {
 			}
 
 			// 빈 칸 확인용 블록 안에 2 번 회전한 J 블록이 들어있는 경우 숫자에 해당하는 부분이 빈 칸일 경우 그 숫자만큼 빈 칸 개수 증가
-			// 1 □□□ 1 						
+			// 1 □ □ □ 1 						
 			// 0 7 7 □ 1 				
-			// 0 0 0 7  1
+			// 0 0 0 7 1
 			else if (blankCheckBlock_cpy[vectorSearchingPosY][vectorSearchingPosX] == 0 && blockRotation == 2) {
 
 				// 빈 칸 확인용 블록의 Y좌표가 1 이고 X좌표가 0 인 경우 빈 칸 개수는 변동 X
@@ -1453,8 +1453,8 @@ int CPU::CurrentBlock_J(int count) {
 			// 빈 칸 확인용 블록 안에 3 번 회전한 J 블록이 들어있는 경우 숫자에 해당하는 부분이 빈 칸일 경우 그 숫자만큼 빈 칸 개수 증가
 			// 0 1 □ 1 						
 			// 0 1 □ 1 				
-			// 1 □□ 1
-			// 0 7 7  0
+			// 1 □ □ 1
+			// 0 7 7 0
 			else if (blankCheckBlock_cpy[vectorSearchingPosY][vectorSearchingPosX] == 0 && blockRotation == 3) {
 
 				// 빈 칸 확인용 블록의 Y좌표가 0 또는 1 이고 X좌표가 0 인 경우 빈 칸 개수는 변동 X
@@ -1490,8 +1490,8 @@ int CPU::CurrentBlock_L(int count) {
 
 			// 빈 칸 확인용 블록 안에 0 번 회전한 L 블록이 들어있는 경우 숫자에 해당하는 부분이 빈 칸일 경우 그 숫자만큼 빈 칸 개수 증가
 			// 0 1 1 □ 1 						
-			// 1 □□□ 1 				
-			// 0 7 7 7  0
+			// 1 □ □ □ 1 				
+			// 0 7 7 7 0
 			if (blankCheckBlock_cpy[vectorSearchingPosY][vectorSearchingPosX] == 0 && blockRotation == 0) {
 
 				// 빈 칸 확인용 블록의 Y좌표가 0 이고 X좌표가 0 인 경우 빈 칸 개수는 변동 X
@@ -1518,8 +1518,8 @@ int CPU::CurrentBlock_L(int count) {
 			// 빈 칸 확인용 블록 안에 1 번 회전한 L 블록이 들어있는 경우 숫자에 해당하는 부분이 빈 칸일 경우 그 숫자만큼 빈 칸 개수 증가
 			// 1 □ 1 0 						
 			// 1 □ 1 0 				
-			// 1 □□ 1
-			// 0 7 7  0
+			// 1 □ □ 1
+			// 0 7 7 0
 			else if (blankCheckBlock_cpy[vectorSearchingPosY][vectorSearchingPosX] == 0 && blockRotation == 1) {
 
 				// 빈 칸 확인용 블록의 Y좌표가 0 또는 1 이고 X좌표가 3 인 경우 빈 칸 개수는 변동 X
@@ -1544,9 +1544,9 @@ int CPU::CurrentBlock_L(int count) {
 			}
 
 			// 빈 칸 확인용 블록 안에 2 번 회전한 L 블록이 들어있는 경우 숫자에 해당하는 부분이 빈 칸일 경우 그 숫자만큼 빈 칸 개수 증가
-			// 1 □□□ 1 						
+			// 1 □ □ □ 1 						
 			// 1 □ 7 7 0 				
-			// 0 7  0 0 0
+			// 0 7 0 0 0
 			else if (blankCheckBlock_cpy[vectorSearchingPosY][vectorSearchingPosX] == 0 && blockRotation == 2) {
 
 				// 빈 칸 확인용 블록의 Y좌표가 1 이고 X좌표가 2 또는 3 인 경우 빈 칸 개수는 7 만큼 증가
@@ -1576,10 +1576,10 @@ int CPU::CurrentBlock_L(int count) {
 			}
 
 			// 빈 칸 확인용 블록 안에 3 번 회전한 L 블록이 들어있는 경우 숫자에 해당하는 부분이 빈 칸일 경우 그 숫자만큼 빈 칸 개수 증가
-			// 1 □□ 1 						
+			// 1 □ □ 1 						
 			// 0 7 □ 1 				
 			// 0 7 □ 1
-			// 0 0 7  0
+			// 0 0 7 0
 			else if (blankCheckBlock_cpy[vectorSearchingPosY][vectorSearchingPosX] == 0 && blockRotation == 3) {
 
 				// 빈 칸 확인용 블록의 Y좌표가 1 또는 2 이고 X좌표가 0 인 경우 빈 칸 개수는 변동 X
