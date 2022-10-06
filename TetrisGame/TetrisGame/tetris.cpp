@@ -1009,14 +1009,14 @@ int CPU::GetBlankCount() {
 // 현재 블록이 I 또는 O 일때 빈 칸 개수 확인
 int CPU::CurrentBlock_IorO(int count) {
 
-	// 빈 칸 확인용 블록 안에 I 블록이 들어있는 경우 숫자에 해당하는 부분이 빈 칸일 경우 그 숫자만큼 빈 칸 개수 증가
+	// 빈 칸 확인용 블록 안에 I 블록이 들어있고 숫자에 해당하는 부분이 빈 칸일 경우 그 숫자만큼 빈 칸 개수 증가
 	// 1 □ □ □ □ 1		1 □ 1				
 	// 0 7 7 7 7 0		1 □ 1				
 	//			1 □ 1				
 	//			1 □ 1
 	//			0 7 0
 
-	// 빈 칸 확인용 블록 안에 O 블록이 들어있는 경우 숫자에 해당하는 부분이 빈 칸일 경우 그 숫자만큼 빈 칸 개수 증가
+	// 빈 칸 확인용 블록 안에 O 블록이 들어있고 숫자에 해당하는 부분이 빈 칸일 경우 그 숫자만큼 빈 칸 개수 증가
 	// 1 □ □ 1
 	// 1 □ □ 1
 	// 0 7 7 0
@@ -1053,7 +1053,7 @@ int CPU::CurrentBlock_T(int count) {
 	for (int vectorSearchingPosY = 0; vectorSearchingPosY < blankCheckBlock_cpy.size(); vectorSearchingPosY++) {
 		for (int vectorSearchingPosX = 0; vectorSearchingPosX < blankCheckBlock_cpy[0].size(); vectorSearchingPosX++) {		
 
-			// 빈 칸 확인용 블록 안에 0 번 회전한 T 블록이 들어있는 경우 숫자에 해당하는 부분이 빈 칸일 경우 그 숫자만큼 빈 칸 개수 증가
+			// 빈 칸 확인용 블록 안에 0 번 회전한 T 블록이 들어있고 숫자에 해당하는 부분이 빈 칸일 경우 그 숫자만큼 빈 칸 개수 증가
 			// 0 1 □ 1 0 						
 			// 0 □ □ □ 0 				
 			// 0 7 7 7 0		
@@ -1080,7 +1080,7 @@ int CPU::CurrentBlock_T(int count) {
 				}
 			}
 
-			// 빈 칸 확인용 블록 안에 1 번 회전한 T 블록이 들어있는 경우 숫자에 해당하는 부분이 빈 칸일 경우 그 숫자만큼 빈 칸 개수 증가
+			// 빈 칸 확인용 블록 안에 1 번 회전한 T 블록이 들어있고 숫자에 해당하는 부분이 빈 칸일 경우 그 숫자만큼 빈 칸 개수 증가
 			// 1 □ 1 0 						
 			// 1 □ □ 1 				
 			// 1 □ 7 0
@@ -1113,7 +1113,7 @@ int CPU::CurrentBlock_T(int count) {
 				}
 			}
 
-			// 빈 칸 확인용 블록 안에 2 번 회전한 T 블록이 들어있는 경우 숫자에 해당하는 부분이 빈 칸일 경우 그 숫자만큼 빈 칸 개수 증가
+			// 빈 칸 확인용 블록 안에 2 번 회전한 T 블록이 들어있고 숫자에 해당하는 부분이 빈 칸일 경우 그 숫자만큼 빈 칸 개수 증가
 			// 1 □ □ □ 1 						
 			// 0 7 □ 7 0 				
 			// 0 0 7 0 0
@@ -1145,7 +1145,7 @@ int CPU::CurrentBlock_T(int count) {
 				}
 			}
 
-			// 빈 칸 확인용 블록 안에 3 번 회전한 T 블록이 들어있는 경우 숫자에 해당하는 부분이 빈 칸일 경우 그 숫자만큼 빈 칸 개수 증가
+			// 빈 칸 확인용 블록 안에 3 번 회전한 T 블록이 들어있고 숫자에 해당하는 부분이 빈 칸일 경우 그 숫자만큼 빈 칸 개수 증가
 			// 0 1 □ 1 						
 			// 1 □ □ 1 				
 			// 0 7 □ 1
@@ -1188,7 +1188,7 @@ int CPU::CurrentBlock_S(int count) {
 	for (int vectorSearchingPosY = 0; vectorSearchingPosY < blankCheckBlock_cpy.size(); vectorSearchingPosY++) {
 		for (int vectorSearchingPosX = 0; vectorSearchingPosX < blankCheckBlock_cpy[0].size(); vectorSearchingPosX++) {
 
-			// 빈 칸 확인용 블록 안에 0 번 회전한 S 블록이 들어있는 경우 숫자에 해당하는 부분이 빈 칸일 경우 그 숫자만큼 빈 칸 개수 증가
+			// 빈 칸 확인용 블록 안에 0 번 회전한 S 블록이 들어있고 숫자에 해당하는 부분이 빈 칸일 경우 그 숫자만큼 빈 칸 개수 증가
 			// 0 1 □ □ 1 						
 			// 1 □ □ 7 0 				
 			// 0 7 7 0 0	
@@ -1225,7 +1225,7 @@ int CPU::CurrentBlock_S(int count) {
 				}
 			}
 
-			// 빈 칸 확인용 블록 안에 1 번 회전한 S 블록이 들어있는 경우 숫자에 해당하는 부분이 빈 칸일 경우 그 숫자만큼 빈 칸 개수 증가
+			// 빈 칸 확인용 블록 안에 1 번 회전한 S 블록이 들어있고 숫자에 해당하는 부분이 빈 칸일 경우 그 숫자만큼 빈 칸 개수 증가
 			// 1 □ 1 0 						
 			// 1 □ □ 1 				
 			// 0 7 □ 1	
@@ -1273,7 +1273,7 @@ int CPU::CurrentBlock_Z(int count) {
 	for (int vectorSearchingPosY = 0; vectorSearchingPosY < blankCheckBlock_cpy.size(); vectorSearchingPosY++) {
 		for (int vectorSearchingPosX = 0; vectorSearchingPosX < blankCheckBlock_cpy[0].size(); vectorSearchingPosX++) {
 
-			// 빈 칸 확인용 블록 안에 0 번 회전한 Z 블록이 들어있는 경우 숫자에 해당하는 부분이 빈 칸일 경우 그 숫자만큼 빈 칸 개수 증가
+			// 빈 칸 확인용 블록 안에 0 번 회전한 Z 블록이 들어있고 숫자에 해당하는 부분이 빈 칸일 경우 그 숫자만큼 빈 칸 개수 증가
 			// 1 □ □ 1 0 						
 			// 0 7 □ □ 1 				
 			// 0 0 7 7 0	
@@ -1310,7 +1310,7 @@ int CPU::CurrentBlock_Z(int count) {
 				}
 			}
 
-			// 빈 칸 확인용 블록 안에 1 번 회전한 Z 블록이 들어있는 경우 숫자에 해당하는 부분이 빈 칸일 경우 그 숫자만큼 빈 칸 개수 증가
+			// 빈 칸 확인용 블록 안에 1 번 회전한 Z 블록이 들어있고 숫자에 해당하는 부분이 빈 칸일 경우 그 숫자만큼 빈 칸 개수 증가
 			// 0 1 □ 1 						
 			// 1 □ □ 1 				
 			// 1 □ 7 0	
@@ -1358,7 +1358,7 @@ int CPU::CurrentBlock_J(int count) {
 	for (int vectorSearchingPosY = 0; vectorSearchingPosY < blankCheckBlock_cpy.size(); vectorSearchingPosY++) {
 		for (int vectorSearchingPosX = 0; vectorSearchingPosX < blankCheckBlock_cpy[0].size(); vectorSearchingPosX++) {
 
-			// 빈 칸 확인용 블록 안에 0 번 회전한 J 블록이 들어있는 경우 숫자에 해당하는 부분이 빈 칸일 경우 그 숫자만큼 빈 칸 개수 증가
+			// 빈 칸 확인용 블록 안에 0 번 회전한 J 블록이 들어있고 숫자에 해당하는 부분이 빈 칸일 경우 그 숫자만큼 빈 칸 개수 증가
 			// 1 □ 1 1 0 						
 			// 1 □ □ □ 1 				
 			// 0 7 7 7 0	
@@ -1385,7 +1385,7 @@ int CPU::CurrentBlock_J(int count) {
 				}
 			}
 
-			// 빈 칸 확인용 블록 안에 1 번 회전한 J 블록이 들어있는 경우 숫자에 해당하는 부분이 빈 칸일 경우 그 숫자만큼 빈 칸 개수 증가
+			// 빈 칸 확인용 블록 안에 1 번 회전한 J 블록이 들어있고 숫자에 해당하는 부분이 빈 칸일 경우 그 숫자만큼 빈 칸 개수 증가
 			// 1 □ □ 1 						
 			// 1 □ 7 0 				
 			// 1 □ 7 0
@@ -1418,7 +1418,7 @@ int CPU::CurrentBlock_J(int count) {
 				}
 			}
 
-			// 빈 칸 확인용 블록 안에 2 번 회전한 J 블록이 들어있는 경우 숫자에 해당하는 부분이 빈 칸일 경우 그 숫자만큼 빈 칸 개수 증가
+			// 빈 칸 확인용 블록 안에 2 번 회전한 J 블록이 들어있고 숫자에 해당하는 부분이 빈 칸일 경우 그 숫자만큼 빈 칸 개수 증가
 			// 1 □ □ □ 1 						
 			// 0 7 7 □ 1 				
 			// 0 0 0 7 1
@@ -1450,7 +1450,7 @@ int CPU::CurrentBlock_J(int count) {
 				}
 			}
 
-			// 빈 칸 확인용 블록 안에 3 번 회전한 J 블록이 들어있는 경우 숫자에 해당하는 부분이 빈 칸일 경우 그 숫자만큼 빈 칸 개수 증가
+			// 빈 칸 확인용 블록 안에 3 번 회전한 J 블록이 들어있고 숫자에 해당하는 부분이 빈 칸일 경우 그 숫자만큼 빈 칸 개수 증가
 			// 0 1 □ 1 						
 			// 0 1 □ 1 				
 			// 1 □ □ 1
@@ -1488,7 +1488,7 @@ int CPU::CurrentBlock_L(int count) {
 	for (int vectorSearchingPosY = 0; vectorSearchingPosY < blankCheckBlock_cpy.size(); vectorSearchingPosY++) {
 		for (int vectorSearchingPosX = 0; vectorSearchingPosX < blankCheckBlock_cpy[0].size(); vectorSearchingPosX++) {
 
-			// 빈 칸 확인용 블록 안에 0 번 회전한 L 블록이 들어있는 경우 숫자에 해당하는 부분이 빈 칸일 경우 그 숫자만큼 빈 칸 개수 증가
+			// 빈 칸 확인용 블록 안에 0 번 회전한 L 블록이 들어있고 숫자에 해당하는 부분이 빈 칸일 경우 그 숫자만큼 빈 칸 개수 증가
 			// 0 1 1 □ 1 						
 			// 1 □ □ □ 1 				
 			// 0 7 7 7 0
@@ -1515,7 +1515,7 @@ int CPU::CurrentBlock_L(int count) {
 				}
 			}
 
-			// 빈 칸 확인용 블록 안에 1 번 회전한 L 블록이 들어있는 경우 숫자에 해당하는 부분이 빈 칸일 경우 그 숫자만큼 빈 칸 개수 증가
+			// 빈 칸 확인용 블록 안에 1 번 회전한 L 블록이 들어있고 숫자에 해당하는 부분이 빈 칸일 경우 그 숫자만큼 빈 칸 개수 증가
 			// 1 □ 1 0 						
 			// 1 □ 1 0 				
 			// 1 □ □ 1
@@ -1543,7 +1543,7 @@ int CPU::CurrentBlock_L(int count) {
 				}
 			}
 
-			// 빈 칸 확인용 블록 안에 2 번 회전한 L 블록이 들어있는 경우 숫자에 해당하는 부분이 빈 칸일 경우 그 숫자만큼 빈 칸 개수 증가
+			// 빈 칸 확인용 블록 안에 2 번 회전한 L 블록이 들어있고 숫자에 해당하는 부분이 빈 칸일 경우 그 숫자만큼 빈 칸 개수 증가
 			// 1 □ □ □ 1 						
 			// 1 □ 7 7 0 				
 			// 0 7 0 0 0
@@ -1575,7 +1575,7 @@ int CPU::CurrentBlock_L(int count) {
 				}
 			}
 
-			// 빈 칸 확인용 블록 안에 3 번 회전한 L 블록이 들어있는 경우 숫자에 해당하는 부분이 빈 칸일 경우 그 숫자만큼 빈 칸 개수 증가
+			// 빈 칸 확인용 블록 안에 3 번 회전한 L 블록이 들어있 숫자에 해당하는 부분이 빈 칸일 경우 그 숫자만큼 빈 칸 개수 증가
 			// 1 □ □ 1 						
 			// 0 7 □ 1 				
 			// 0 7 □ 1
